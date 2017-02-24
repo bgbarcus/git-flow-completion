@@ -63,6 +63,10 @@ _git-flow ()
 						__git-flow-release
 					;;
 
+                    (support)
+                        __git-flow-support
+                    ;;
+
 					(feature)
 						__git-flow-feature
 					;;
@@ -132,6 +136,51 @@ __git-flow-release ()
 			esac
 		;;
 	esac
+}
+
+__git-flow-support ()
+{
+    local curcontext="curcontext" state line
+    typeset -A opt_args
+
+    _arguments -C ':command:->command' '*::options:->options'
+
+    case $state in
+        (command)
+            local -a subcommands
+            subcommands=(
+                'start:Start a new support branch.'
+                'rebase:Rebase from integration branch.'
+                'list:List all your support branches.'
+            )
+            _describe -t commands 'git flow support' subcommands
+            _arguments \
+                -v'[Verbose (more) output]'
+        ;;
+
+        (options)
+            case $line[1] in
+
+                (start)
+                    _arguments \
+                        -F'[Fetch from origin before performing finish]'\
+                        ':support:__git_flow_version_list'\
+                        ':branch-name:__git_branch_names'
+                ;;
+
+                (rebase)
+                    _arguments \
+                        -i'[Do an interactive rebase]' \
+                        ':branch:__git_branch_names'
+                ;;
+
+                *)
+                    _arguments \
+                        -v'[Verbose (more) output]'
+                ;;
+            esac
+        ;;
+    esac
 }
 
 __git-flow-hotfix ()
@@ -271,6 +320,17 @@ __git-flow-feature ()
 			esac
 		;;
 	esac
+}
+
+__git_flow_support_list ()
+{
+    local expl
+    declare -a support
+
+    supports=(${${(f)"$(_call_program supports git flow support list 2> /dev/null | tr -d ' |*')"}})
+    __git_command_successful || return
+
+    _wanted supports expl 'support' compadd $supports
 }
 
 __git_flow_version_list ()
